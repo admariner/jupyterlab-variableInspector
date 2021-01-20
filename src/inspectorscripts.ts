@@ -28,15 +28,13 @@ __pd = None
 __pyspark = None
 __tf = None
 __K = None
-__torch = None
 __ipywidgets = None
 
 
 def _check_imported():
-    global __np, __pd, __pyspark, __tf, __K, __torch, __ipywidgets
+    global __np, __pd, __pyspark, __tf, __K, __ipywidgets
 
-    if '
-' in sys.modules:
+    if 'numpy' in sys.modules:
         # don't really need the try
         import numpy as __np
 
@@ -57,9 +55,6 @@ def _check_imported():
             except ImportError:
                 __K = None
 
-    if 'torch' in sys.modules:
-        import torch as __torch
-
     if 'ipywidgets' in sys.modules:
         import ipywidgets as __ipywidgets
 
@@ -71,8 +66,6 @@ def _jupyterlab_variableinspector_getsizeof(x):
         return "?"
     elif __tf and isinstance(x, __tf.Variable):
         return "?"
-    elif __torch and isinstance(x, __torch.Tensor):
-        return x.element_size() * x.nelement()
     elif __pd and type(x).__name__ == 'DataFrame':
         return x.memory_usage().sum()
     else:
@@ -93,9 +86,6 @@ def _jupyterlab_variableinspector_getshapeof(x):
         shape = " x ".join([str(int(i)) for i in x.shape])
         return "%s" % shape
     if __tf and isinstance(x, __tf.Tensor):
-        shape = " x ".join([str(int(i)) for i in x.shape])
-        return "%s" % shape
-    if __torch and isinstance(x, __torch.Tensor):
         shape = " x ".join([str(int(i)) for i in x.shape])
         return "%s" % shape
     if isinstance(x, list):
@@ -139,8 +129,6 @@ def _jupyterlab_variableinspector_is_matrix(x):
         return True
     if __tf and isinstance(x, __tf.Tensor) and len(x.shape) <= 2:
         return True
-    if __torch and isinstance(x, __torch.Tensor) and len(x.shape) <= 2:
-        return True
     if isinstance(x, list):
         return True
     return False
@@ -165,7 +153,7 @@ def _jupyterlab_variableinspector_dict_list():
                 return True
             if str(obj)[0] == "<":
                 return False
-            if  v in ['__np', '__pd', '__pyspark', '__tf', '__K', '__torch', '__ipywidgets']:
+            if  v in ['__np', '__pd', '__pyspark', '__tf', '__K', '__ipywidgets']:
                 return obj is not None
             if str(obj).startswith("_Feature"):
                 # removes tf/keras objects
@@ -210,9 +198,6 @@ def _jupyterlab_variableinspector_getmatrixcontent(x, max_rows=10000):
         return _jupyterlab_variableinspector_getmatrixcontent(df)
     elif __tf and (isinstance(x, __tf.Variable) or isinstance(x, __tf.Tensor)):
         df = __K.get_value(x)
-        return _jupyterlab_variableinspector_getmatrixcontent(df)
-    elif __torch and __pd and isinstance(x, torch.Tensor):
-        df = x.cpu().numpy()
         return _jupyterlab_variableinspector_getmatrixcontent(df)
     elif isinstance(x, list):
         s = __pd.Series(x)
